@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { HashRouter, Routes, Route } from "react-router-dom";
 
 import Home from "./pages/Home";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -8,7 +8,7 @@ import HubManagement from "./pages/HubManagement";
 
 function App() {
   return (
-    <BrowserRouter basename="/YourTym-Frontend">
+    <HashRouter>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/admin" element={<AdminDashboard />} />
@@ -16,7 +16,7 @@ function App() {
         <Route path="/user" element={<UserDashboard />} />
         <Route path="/hub-management" element={<HubManagement />} />
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
 
