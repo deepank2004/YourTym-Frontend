@@ -1,8 +1,10 @@
 {
   "name": "frontend",
+  "homepage": "https://github.com/deepank2004/YourTym-Frontend",
   "private": true,
   "version": "0.0.0",
   "type": "module",
+
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -11,6 +13,7 @@
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist"
   },
+
   "dependencies": {
     "@tailwindcss/vite": "^4.3.1",
     "axios": "^1.18.1",
@@ -19,6 +22,7 @@
     "react-router-dom": "^7.18.0",
     "tailwindcss": "^4.3.1"
   },
+
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/react": "^19.2.14",
