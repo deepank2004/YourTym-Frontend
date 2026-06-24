@@ -4,6 +4,7 @@ import Home from "./pages/Home";
 import AdminDashboard from "./pages/AdminDashboard";
 import PartnerDashboard from "./pages/PartnerDashboard";
 import UserDashboard from "./pages/UserDashboard";
+import HubManagement from "./pages/HubManagement";
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/partner" element={<PartnerDashboard />} />
         <Route path="/user" element={<UserDashboard />} />
+        <Route path="/hub-management" element={<HubManagement />} />
       </Routes>
     </BrowserRouter>
   );

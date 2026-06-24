@@ -35,6 +35,13 @@ function Home() {
                     User
                 </button>
 
+                <button
+                    onClick={() => navigate("/hub-management")}
+                    className="bg-white px-8 py-4 rounded-xl shadow-lg hover:scale-105 transition"
+                >
+                    Hub Management
+                </button>
+
             </div>
 
         </div>
