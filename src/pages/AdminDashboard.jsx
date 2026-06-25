@@ -1,6 +1,7 @@
 import CityTable from "../components/CityTable";
 import CategoryTable from "../components/CategoryTable";
-import KMLUpload from "../components/KMLUpload";
+import PartnerTable from "../components/PartnerTable";
+import UserTable from "../components/UserTable";
 
 function AdminDashboard() {
   return (
@@ -12,16 +13,24 @@ function AdminDashboard() {
 
       <div className="max-w-7xl mx-auto space-y-8">
 
+        {/* Cities */}
         <div className="bg-white shadow-lg rounded-xl p-6">
           <CityTable />
         </div>
 
+        {/* Categories */}
         <div className="bg-white shadow-lg rounded-xl p-6">
           <CategoryTable />
         </div>
 
+        {/* Partners */}
         <div className="bg-white shadow-lg rounded-xl p-6">
-          <KMLUpload />
+          <PartnerTable />
+        </div>
+
+        {/* Users */}
+        <div className="bg-white shadow-lg rounded-xl p-6">
+          <UserTable />
         </div>
 
       </div>
