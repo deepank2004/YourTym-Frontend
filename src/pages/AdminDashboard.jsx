@@ -1,7 +1,5 @@
 import CityTable from "../components/CityTable";
 import CategoryTable from "../components/CategoryTable";
-import PartnerTable from "../components/PartnerTable";
-import UserTable from "../components/UserTable";
 
 function AdminDashboard() {
   return (
@@ -21,16 +19,6 @@ function AdminDashboard() {
         {/* Categories */}
         <div className="bg-white shadow-lg rounded-xl p-6">
           <CategoryTable />
-        </div>
-
-        {/* Partners */}
-        <div className="bg-white shadow-lg rounded-xl p-6">
-          <PartnerTable />
-        </div>
-
-        {/* Users */}
-        <div className="bg-white shadow-lg rounded-xl p-6">
-          <UserTable />
         </div>
 
       </div>
