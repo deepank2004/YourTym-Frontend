@@ -5,14 +5,16 @@ const GetHubs = () => {
   const [hubs, setHubs] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // modal states
   const [selectedHub, setSelectedHub] = useState(null);
-  const [partners, setPartners] = useState([]);
-  const [selectedPartners, setSelectedPartners] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const [partnerIdsInput, setPartnerIdsInput] = useState("");
+  const [saving, setSaving] = useState(false);
 
   const fetchHubs = async () => {
     try {
+      setLoading(true);
+
       const response = await API.get("/hubs");
 
       const hubData =
@@ -23,77 +25,99 @@ const GetHubs = () => {
       setHubs(Array.isArray(hubData) ? hubData : []);
     } catch (error) {
       console.log("Error fetching hubs:", error);
+      alert("Failed to fetch hubs");
     } finally {
       setLoading(false);
     }
   };
 
-  // fetch all partners
-  const fetchPartners = async () => {
-    try {
-      const res = await API.get("/partners");
-      const data = res.data?.data || res.data || [];
-      setPartners(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
   useEffect(() => {
     fetchHubs();
-    fetchPartners();
   }, []);
 
-  // open modal
   const handleEditHub = (hub) => {
     setSelectedHub(hub);
 
-    setSelectedPartners(
-      hub.partners?.map((p) => p._id) || []
-    );
+    const existingPartnerIds = (hub.partners || [])
+      .map((partner) => {
+        if (typeof partner === "string") {
+          return partner;
+        }
 
+        return partner.partnerId || "";
+      })
+      .filter(Boolean)
+      .join("\n");
+
+    setPartnerIdsInput(existingPartnerIds);
     setIsModalOpen(true);
   };
 
-  // toggle partners
-  const togglePartner = (id) => {
-    setSelectedPartners((prev) =>
-      prev.includes(id)
-        ? prev.filter((p) => p !== id)
-        : [...prev, id]
-    );
-  };
-
-  // save API
   const handleSave = async () => {
     try {
-      await API.put(
-        `/hubs/${selectedHub.hubId}/partners`,
-        {
-          partnerIds: selectedPartners
-        }
-      );
+      if (!selectedHub) {
+        alert("No hub selected");
+        return;
+      }
 
-      alert("Hub updated successfully");
+      if (!selectedHub.hubId) {
+        alert("Hub ID is missing");
+        return;
+      }
+
+      const partnerIds = partnerIdsInput
+        .split(/[\n,\s]+/)
+        .map((id) => id.trim())
+        .filter(Boolean);
+
+      const uniquePartnerIds = [...new Set(partnerIds)];
+
+      if (uniquePartnerIds.length === 0) {
+        alert("Please enter at least one Partner ID");
+        return;
+      }
+
+      setSaving(true);
+
+      await API.put(`/hubs/${selectedHub.hubId}/partners`, {
+        partnerIds: uniquePartnerIds,
+      });
+
+      alert("Hub partners updated successfully");
 
       setIsModalOpen(false);
       setSelectedHub(null);
+      setPartnerIdsInput("");
 
       fetchHubs();
-
     } catch (err) {
-      console.log(err);
-      alert("Error updating hub");
+      console.log("UPDATE HUB ERROR:", err);
+      alert(err?.response?.data?.message || "Error updating hub partners");
+    } finally {
+      setSaving(false);
     }
   };
 
-  // 👥 helper for partner names
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedHub(null);
+    setPartnerIdsInput("");
+  };
+
   const getPartnerNames = (hub) => {
     if (!hub.partners || hub.partners.length === 0) {
       return "No partners";
     }
 
-    return hub.partners.map((p) => p.name).join(", ");
+    return hub.partners
+      .map((partner) => {
+        if (typeof partner === "string") {
+          return partner;
+        }
+
+        return partner.name || partner.partnerId || "Unknown Partner";
+      })
+      .join(", ");
   };
 
   if (loading) {
@@ -106,10 +130,7 @@ const GetHubs = () => {
 
   return (
     <div className="overflow-x-auto bg-white rounded-lg shadow">
-
-      {/* TABLE */}
       <table className="min-w-full border border-gray-200">
-
         <thead>
           <tr className="bg-gray-100">
             <th className="border p-3">Hub ID</th>
@@ -119,10 +140,7 @@ const GetHubs = () => {
             <th className="border p-3">KML File</th>
             <th className="border p-3">Status</th>
             <th className="border p-3">Created At</th>
-
-            {/* NEW COLUMN */}
             <th className="border p-3">Partners</th>
-
             <th className="border p-3">Action</th>
           </tr>
         </thead>
@@ -130,31 +148,34 @@ const GetHubs = () => {
         <tbody>
           {hubs.length > 0 ? (
             hubs.map((hub) => (
-              <tr key={hub._id} className="text-center">
-
-                <td className="border p-3">{hub.hubId}</td>
+              <tr key={hub.hubId} className="text-center">
+                <td className="border p-3">{hub.hubId || "N/A"}</td>
 
                 <td className="border p-3">
-                  {hub.city?.name || hub.city?.cityName || "N/A"}
+                  {hub.city?.name || hub.city?.cityName || hub.cityId || "N/A"}
                 </td>
 
                 <td className="border p-3">
-                  {hub.category?.name || "N/A"}
+                  {hub.category?.name || hub.categoryId || "N/A"}
                 </td>
 
                 <td className="border p-3">
-                  {hub.serviceDistanceKm}
+                  {hub.serviceDistanceKm ?? "N/A"}
                 </td>
 
                 <td className="border p-3">
-                  <a
-                    href={hub.kmlFile}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-blue-600 underline"
-                  >
-                    View KML
-                  </a>
+                  {hub.kmlFile ? (
+                    <a
+                      href={hub.kmlFile}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-blue-600 underline"
+                    >
+                      View KML
+                    </a>
+                  ) : (
+                    "N/A"
+                  )}
                 </td>
 
                 <td className="border p-3">
@@ -170,32 +191,29 @@ const GetHubs = () => {
                 </td>
 
                 <td className="border p-3">
-                  {new Date(hub.createdAt).toLocaleDateString()}
+                  {hub.createdAt
+                    ? new Date(hub.createdAt).toLocaleDateString()
+                    : "N/A"}
                 </td>
 
-                {/* 👥 PARTNERS COLUMN */}
                 <td className="border p-3 text-left">
-                  <div>
-                    <div className="font-semibold text-sm">
-                      {hub.partners?.length || 0} partners
-                    </div>
+                  <div className="font-semibold text-sm">
+                    {hub.partners?.length || 0} partners
+                  </div>
 
-                    <div className="text-gray-600 text-xs truncate max-w-[220px]">
-                      {getPartnerNames(hub)}
-                    </div>
+                  <div className="text-gray-600 text-xs truncate max-w-[220px]">
+                    {getPartnerNames(hub)}
                   </div>
                 </td>
 
-                {/* ACTION */}
                 <td className="border p-3">
                   <button
                     onClick={() => handleEditHub(hub)}
-                    className="bg-blue-500 text-white px-3 py-1 rounded"
+                    className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded"
                   >
                     Update Hub
                   </button>
                 </td>
-
               </tr>
             ))
           ) : (
@@ -208,54 +226,65 @@ const GetHubs = () => {
         </tbody>
       </table>
 
-      {/* MODAL */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-6 rounded-lg w-[400px]">
-
-            <h2 className="text-xl font-bold mb-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-lg w-[500px] shadow-lg">
+            <h2 className="text-xl font-bold mb-2">
               Update Hub Partners
             </h2>
 
-            <div className="max-h-60 overflow-y-auto">
-              {partners.map((p) => (
-                <label
-                  key={p._id}
-                  className="block mb-2"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedPartners.includes(p._id)}
-                    onChange={() => togglePartner(p._id)}
-                    className="mr-2"
-                  />
-                  {p.name}
-                </label>
-              ))}
+            <p className="text-sm text-gray-600 mb-3">
+              Hub ID:{" "}
+              <span className="font-semibold">
+                {selectedHub?.hubId}
+              </span>
+            </p>
+
+            <label className="block text-sm font-medium mb-2">
+              Paste Partner IDs
+            </label>
+
+            <textarea
+              value={partnerIdsInput}
+              onChange={(e) => setPartnerIdsInput(e.target.value)}
+              maxLength={100000}
+              rows={12}
+              placeholder={`Paste Partner IDs here:
+
+PARTNER001
+PARTNER002
+PARTNER003`}
+              className="w-full border border-gray-300 rounded p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+
+            <div className="text-xs text-gray-500 mt-1">
+              You can separate Partner IDs using new lines, commas, or spaces.
             </div>
 
-            <div className="flex justify-end gap-2 mt-4">
+            <div className="text-xs text-gray-500 mt-1">
+              Characters: {partnerIdsInput.length}/10000
+            </div>
 
+            <div className="flex justify-end gap-2 mt-5">
               <button
-                onClick={() => setIsModalOpen(false)}
-                className="px-3 py-1 bg-gray-400 text-white rounded"
+                onClick={closeModal}
+                disabled={saving}
+                className="px-4 py-2 bg-gray-400 hover:bg-gray-500 text-white rounded disabled:opacity-50"
               >
                 Cancel
               </button>
 
               <button
                 onClick={handleSave}
-                className="px-3 py-1 bg-green-500 text-white rounded"
+                disabled={saving}
+                className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded disabled:opacity-50"
               >
-                Save
+                {saving ? "Saving..." : "Save"}
               </button>
-
             </div>
-
           </div>
         </div>
       )}
-
     </div>
   );
 };
