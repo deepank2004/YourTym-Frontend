@@ -17,6 +17,7 @@ function PartnerTable() {
       setPartners(Array.isArray(partnerData) ? partnerData : []);
     } catch (error) {
       console.log("Error fetching partners:", error);
+      alert("Failed to fetch partners");
     } finally {
       setLoading(false);
     }
@@ -42,7 +43,6 @@ function PartnerTable() {
 
       <div className="overflow-x-auto bg-white rounded-lg shadow">
         <table className="min-w-full border border-gray-200">
-
           <thead>
             <tr className="bg-blue-100">
               <th className="border p-3">Partner ID</th>
@@ -51,6 +51,7 @@ function PartnerTable() {
               <th className="border p-3">Category</th>
               <th className="border p-3">City</th>
               <th className="border p-3">Hub</th>
+              <th className="border p-3">KML Map</th>
               <th className="border p-3">Created At</th>
             </tr>
           </thead>
@@ -59,13 +60,12 @@ function PartnerTable() {
             {partners.length > 0 ? (
               partners.map((partner) => (
                 <tr key={partner._id} className="text-center">
-
                   <td className="border p-3">
-                    {partner.partnerId}
+                    {partner.partnerId || "N/A"}
                   </td>
 
                   <td className="border p-3">
-                    {partner.name}
+                    {partner.name || "N/A"}
                   </td>
 
                   <td className="border p-3">
@@ -81,29 +81,53 @@ function PartnerTable() {
                   </td>
 
                   <td className="border p-3">
-                    {partner.category}
+                    {partner.category || "N/A"}
                   </td>
 
                   <td className="border p-3">
-                    {partner.city}
+                    {partner.city || "N/A"}
                   </td>
 
                   <td className="border p-3">
-                    {partner.hub}
+                    {partner.hub && partner.hub !== "N/A" ? (
+                      <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-sm font-medium">
+                        {partner.hub}
+                      </span>
+                    ) : (
+                      <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded text-sm">
+                        No Hub Assigned
+                      </span>
+                    )}
                   </td>
 
                   <td className="border p-3">
-                    {new Date(
-                      partner.createdAt
-                    ).toLocaleDateString()}
+                    {partner.kmlFile ? (
+                      <a
+                        href={partner.kmlFile}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm inline-block"
+                      >
+                        View Map
+                      </a>
+                    ) : (
+                      <span className="text-gray-500 text-sm">
+                        No KML
+                      </span>
+                    )}
                   </td>
 
+                  <td className="border p-3">
+                    {partner.createdAt
+                      ? new Date(partner.createdAt).toLocaleDateString()
+                      : "N/A"}
+                  </td>
                 </tr>
               ))
             ) : (
               <tr>
                 <td
-                  colSpan="7"
+                  colSpan="8"
                   className="border p-4 text-center"
                 >
                   No Partners Found
@@ -111,7 +135,6 @@ function PartnerTable() {
               </tr>
             )}
           </tbody>
-
         </table>
       </div>
     </div>

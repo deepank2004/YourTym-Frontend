@@ -44,7 +44,7 @@ const GetHubs = () => {
           return partner;
         }
 
-        return partner.partnerId || "";
+        return partner._id || "";
       })
       .filter(Boolean)
       .join("\n");
@@ -73,7 +73,7 @@ const GetHubs = () => {
       const uniquePartnerIds = [...new Set(partnerIds)];
 
       if (uniquePartnerIds.length === 0) {
-        alert("Please enter at least one Partner ID");
+        alert("Please enter at least one MongoDB Partner _id");
         return;
       }
 
@@ -92,7 +92,19 @@ const GetHubs = () => {
       fetchHubs();
     } catch (err) {
       console.log("UPDATE HUB ERROR:", err);
-      alert(err?.response?.data?.message || "Error updating hub partners");
+
+      const message =
+        err?.response?.data?.message || "Error updating hub partners";
+
+      const invalidIds =
+        err?.response?.data?.invalidIds ||
+        err?.response?.data?.notFoundIds;
+
+      if (invalidIds?.length > 0) {
+        alert(`${message}: ${invalidIds.join(", ")}`);
+      } else {
+        alert(message);
+      }
     } finally {
       setSaving(false);
     }
@@ -115,7 +127,7 @@ const GetHubs = () => {
           return partner;
         }
 
-        return partner.name || partner.partnerId || "Unknown Partner";
+        return partner.name || partner.partnerId || partner._id || "Unknown Partner";
       })
       .join(", ");
   };
@@ -148,15 +160,15 @@ const GetHubs = () => {
         <tbody>
           {hubs.length > 0 ? (
             hubs.map((hub) => (
-              <tr key={hub.hubId} className="text-center">
+              <tr key={hub._id || hub.hubId} className="text-center">
                 <td className="border p-3">{hub.hubId || "N/A"}</td>
 
                 <td className="border p-3">
-                  {hub.city?.name || hub.city?.cityName || hub.cityId || "N/A"}
+                  {hub.city?.cityName || hub.city?.name || "N/A"}
                 </td>
 
                 <td className="border p-3">
-                  {hub.category?.name || hub.categoryId || "N/A"}
+                  {hub.category?.name || "N/A"}
                 </td>
 
                 <td className="border p-3">
@@ -241,24 +253,23 @@ const GetHubs = () => {
             </p>
 
             <label className="block text-sm font-medium mb-2">
-              Paste Partner IDs
+              Paste Partner MongoDB Object IDs
             </label>
 
             <textarea
               value={partnerIdsInput}
               onChange={(e) => setPartnerIdsInput(e.target.value)}
-              maxLength={100000}
+              maxLength={10000}
               rows={12}
-              placeholder={`Paste Partner IDs here:
+              placeholder={`Paste Partner MongoDB _id here:
 
-PARTNER001
-PARTNER002
-PARTNER003`}
+65f1a2b3c4d5e6f789123456
+65f1a2b3c4d5e6f789123457`}
               className="w-full border border-gray-300 rounded p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
 
             <div className="text-xs text-gray-500 mt-1">
-              You can separate Partner IDs using new lines, commas, or spaces.
+              You can separate IDs using new lines, commas, or spaces.
             </div>
 
             <div className="text-xs text-gray-500 mt-1">
